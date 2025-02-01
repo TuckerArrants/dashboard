@@ -145,6 +145,8 @@ if uploaded_file is not None:
     selected_instrument = st.sidebar.selectbox("Select Instrument", instrument_options)
     dr_range_options = ['ODR', 'RDR']
     selected_dr_range = st.sidebar.selectbox("Select DR Range", dr_range_options)
+    day_options = df['Day of Week'].dropna().unique.tolist()
+    selected_day = st.sidebar.selectbox("Day if Week", day_options)
 
     # Plotting columns
     variable_column_1 = f"{selected_dr_range}_M7Box_Max_Retracement_STD_Quarters_Grouped"
