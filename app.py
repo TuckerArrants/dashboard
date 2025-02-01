@@ -139,13 +139,12 @@ if uploaded_file is not None:
     df['RDR_M7Box_Confirmation_Time_NY'] = pd.to_datetime(df['RDR_M7Box_Confirmation_Time_NY'], errors='coerce').dt.time
     df['RDR_DR_Confirmation_Time_NY'] = pd.to_datetime(df['RDR_DR_Confirmation_Time_NY'], errors='coerce').dt.time
 
-
     ### **Sidebar: Select Instrument and DR Range**
     instrument_options = df['Instrument'].dropna().unique().tolist()
     selected_instrument = st.sidebar.selectbox("Select Instrument", instrument_options)
     dr_range_options = ['ODR', 'RDR']
     selected_dr_range = st.sidebar.selectbox("Select DR Range", dr_range_options)
-    day_options = df['Day of Week'].dropna().unique.tolist()
+    day_options = df['Day of Week'].dropna().unique().tolist()
     selected_day = st.sidebar.selectbox("Day if Week", day_options)
 
     # Plotting columns
