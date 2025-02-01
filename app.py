@@ -92,7 +92,6 @@ if not st.session_state["authenticated"]:
 
 # ✅ If authenticated, show the full app
 st.sidebar.success(f"Logged in as: **{st.session_state['username']}**")
-st.title("M7Box Database")
 
 # ✅ Logout button in the sidebar
 if st.sidebar.button("Logout"):
