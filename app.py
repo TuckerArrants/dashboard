@@ -144,7 +144,7 @@ if uploaded_file is not None:
     selected_instrument = st.sidebar.selectbox("Select Instrument", instrument_options)
     dr_range_options = ['ODR', 'RDR']
     selected_dr_range = st.sidebar.selectbox("Select DR Range", dr_range_options)
-    day_options = df['Day of Week'].dropna().unique().tolist()
+    day_options = ['All'] + df['Day of Week'].dropna().unique().tolist()
     selected_day = st.sidebar.selectbox("Day of Week", day_options)
 
     # Plotting columns
