@@ -26,12 +26,8 @@ def std_to_quarter(row, col_name):
         return '-0.5 to -0.749'
     elif -0.75 >= row[col_name] > -1:
         return '-0.75 to -0.999'
-    elif -1.0 >= row[col_name] > -1.25:
-        return '-1 to -1.249'
-    elif -1.25 >= row[col_name] > -1.5:
-        return '-1.25 to -1.499'
     else:
-        return 'Beyond -1.5'
+        return 'Beyond -1'
 
 def std_to_halves(row, col_name):
     """Categorizes numerical values into quarter-based ranges."""
