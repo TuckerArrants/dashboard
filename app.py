@@ -1,60 +1,35 @@
+%%writefile app.py
 import streamlit as st
 import pandas as pd
+import numpy as np
 import plotly.express as px
 
 st.set_page_config(layout='wide')
 
-def std_to_quarter(row, col_name):
-    """Categorizes numerical values into quarter-based ranges."""
-    if pd.isna(row[col_name]):
-        return None
-    elif row[col_name] > 1:
-        return 'Above 1'
-    elif 1 >= row[col_name] > 0.75:
-        return '1 to 0.749'
-    elif 0.75 >= row[col_name] > 0.5:
-        return '0.75 to 0.499'
-    elif 0.5 >= row[col_name] > 0.25:
-        return '0.5 to 0.249'
-    elif 0.25 >= row[col_name] > 0:
-        return '0.25 to 0.001'
-    elif 0 >= row[col_name] > -0.25:
-        return '0 to -0.249'
-    elif -0.25 >= row[col_name] > -0.5:
-        return '-0.25 to -0.499'
-    elif -0.5 >= row[col_name] > -0.75:
-        return '-0.5 to -0.749'
-    elif -0.75 >= row[col_name] > -1:
-        return '-0.75 to -0.999'
-    else:
-        return 'Beyond -1'
+def dynamic_binning(df, col_name, bin_width=0.25):
+    if col_name not in df or df[col_name].dropna().empty:
+        return None, []  # Return None and an empty list if the column doesn't exist or is empty
 
-def std_to_halves(row, col_name):
-    """Categorizes numerical values into quarter-based ranges."""
-    if pd.isna(row[col_name]):
-        return None
-    elif row[col_name] >= 5:
-        return 'Above 5'
-    elif 5 > row[col_name] >= 4.5:
-        return '4.5 to 4.999'
-    elif 4.5 > row[col_name] >= 4:
-        return '4 to 4.49'
-    elif 4 > row[col_name] >= 3.5:
-        return '3.5 to 3.999'
-    elif 3.5 > row[col_name] >= 3:
-        return '3 to 3.499'
-    elif 3 > row[col_name] >= 2.5:
-        return '2.5 to 0.299'
-    elif 2.5 > row[col_name] >= 2:
-        return '2 to 2.499'
-    elif 2 > row[col_name] >= 1.5:
-        return '1.5 to 1.999'
-    elif 1.5 > row[col_name] >= 1:
-        return '1 to 1.499'
-    elif 1 > row[col_name] >= 0.5:
-        return '0.5 to 0.999'
-    else:
-        return 'Below 0.5'
+    col_min = df[col_name].min(skipna=True)
+    col_max = df[col_name].max(skipna=True)
+
+    # Round min/max to nearest bin width
+    col_min = bin_width * np.floor(col_min / bin_width)
+    col_max = bin_width * np.ceil(col_max / bin_width)
+
+    # Create bins explicitly in increments of bin_width
+    bins = np.arange(col_min, col_max + bin_width, bin_width)
+
+    # Generate labels dynamically with correct formatting
+    labels = []
+    for i in range(len(bins) - 1):
+        lower, upper = bins[i], bins[i + 1] - 0.001  # Adjust upper bound for correct naming
+        labels.append(f"{lower:.3f} to {upper:.3f}")
+
+    # Apply binning to the column
+    categorized_column = pd.cut(df[col_name], bins=bins, labels=labels, include_lowest=True)
+
+    return categorized_column, labels  # Return labels in descending order (from high to low)
 
 # ✅ Store username-password pairs
 USER_CREDENTIALS = {
@@ -92,16 +67,13 @@ if not st.session_state["authenticated"]:
 
 # ✅ If authenticated, show the full app
 st.sidebar.success(f"Logged in as: **{st.session_state['username']}**")
+st.title("M7Box Database")
 
 # ✅ Logout button in the sidebar
 if st.sidebar.button("Logout"):
     st.session_state["authenticated"] = False
     st.session_state["username"] = None
     st.rerun()
-
-
-# Title
-st.title("M7Box Database")
 
 # Upload CSV File
 uploaded_file = st.file_uploader("Upload a CSV file", type=["csv"])
@@ -110,29 +82,15 @@ if uploaded_file is not None:
     df = pd.read_csv(uploaded_file)
 
     # Ensure required column is created
-    df['ODR_M7Box_Max_Retracement_STD_Quarters_Grouped'] = df.apply(
-        lambda row: std_to_quarter(row, 'ODR_M7Box_Max_Retracement_STD'), axis=1)
+    df['ODR_M7Box_Max_Retracement_STD_Quarters_Grouped'], odr_m7box_ret_custom_order = dynamic_binning(df, 'ODR_M7Box_Max_Retracement_STD', bin_width=0.25)
+    df['RDR_M7Box_Max_Retracement_STD_Quarters_Grouped'], rdr_m7Box_ret_custom_order= dynamic_binning(df, 'RDR_M7Box_Max_Retracement_STD', bin_width=0.25)
+    df['ODR_DR_Max_Retracement_STD_Quarters_Grouped'], odr_dr_ret_custom_order = dynamic_binning(df, 'ODR_DR_Max_Retracement_STD', bin_width=0.25)
+    df['RDR_DR_Max_Retracement_STD_Quarters_Grouped'], rdr_dr_ret_custom_order= dynamic_binning(df, 'RDR_DR_Max_Retracement_STD', bin_width=0.25)
 
-    df['RDR_M7Box_Max_Retracement_STD_Quarters_Grouped'] = df.apply(
-        lambda row: std_to_quarter(row, 'RDR_M7Box_Max_Retracement_STD'), axis=1)
-
-    df['ODR_DR_Max_Retracement_STD_Quarters_Grouped'] = df.apply(
-        lambda row: std_to_quarter(row, 'ODR_DR_Max_Retracement_STD'), axis=1)
-
-    df['RDR_DR_Max_Retracement_STD_Quarters_Grouped'] = df.apply(
-        lambda row: std_to_quarter(row, 'RDR_DR_Max_Retracement_STD'), axis=1)
-
-    df['ODR_M7Box_Max_Extension_STD_Halves_Grouped'] = df.apply(
-        lambda row: std_to_halves(row, 'ODR_M7Box_Max_Extension_STD'), axis=1)
-
-    df['RDR_M7Box_Max_Extension_STD_Halves_Grouped'] = df.apply(
-        lambda row: std_to_halves(row, 'RDR_M7Box_Max_Extension_STD'), axis=1)
-
-    df['ODR_DR_Max_Extension_STD_Halves_Grouped'] = df.apply(
-        lambda row: std_to_halves(row, 'ODR_DR_Max_Extension_STD'), axis=1)
-
-    df['RDR_DR_Max_Extension_STD_Halves_Grouped'] = df.apply(
-        lambda row: std_to_halves(row, 'RDR_DR_Max_Extension_STD'), axis=1)
+    df['ODR_M7Box_Max_Extension_STD_Halves_Grouped'], odr_m7box_ext_custom_order = dynamic_binning(df, 'ODR_M7Box_Max_Extension_STD', bin_width=0.5)
+    df['RDR_M7Box_Max_Extension_STD_Halves_Grouped'], rdr_m7Box_ext_custom_order= dynamic_binning(df, 'RDR_M7Box_Max_Extension_STD', bin_width=0.5)
+    df['ODR_DR_Max_Extension_STD_Halves_Grouped'], odr_dr_ext_custom_order = dynamic_binning(df, 'ODR_DR_Max_Extension_STD', bin_width=0.5)
+    df['RDR_DR_Max_Extension_STD_Halves_Grouped'], rdr_dr_ext_custom_order = dynamic_binning(df, 'RDR_DR_Max_Extension_STD', bin_width=0.5)
 
     df['ODR_M7Box_Confirmation_Time_NY'] = pd.to_datetime(df['ODR_M7Box_Confirmation_Time_NY'], errors='coerce').dt.time
     df['ODR_DR_Confirmation_Time_NY'] = pd.to_datetime(df['ODR_DR_Confirmation_Time_NY'], errors='coerce').dt.time
@@ -145,7 +103,7 @@ if uploaded_file is not None:
     dr_range_options = ['ODR', 'RDR']
     selected_dr_range = st.sidebar.selectbox("Select DR Range", dr_range_options)
     day_options = ['All'] + ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday']
-    selected_day = st.sidebar.selectbox("Day of Week", day_options)
+    selected_day = st.sidebar.selectbox("Day if Week", day_options)
 
     # Plotting columns
     variable_column_1 = f"{selected_dr_range}_M7Box_Max_Retracement_STD_Quarters_Grouped"
@@ -195,7 +153,7 @@ if uploaded_file is not None:
 
     with col4:
         m7box_selected_time_range = st.slider(
-        "Select Time Range for M7Box Confirmation Time (Right Exclusive)",
+        "Select Time Range for M7Box Confirmation Time (Right Exlusive)",
         min_value=m7box_min_time,
         max_value=m7box_max_time,
         value=(m7box_min_time, m7box_max_time),
@@ -203,14 +161,14 @@ if uploaded_file is not None:
     )
 
         dr_selected_time_range = st.slider(
-        "Select Time Range for DR Confirmation Time (Right Exclusive)",
+        "Select Time Range for DR Confirmation Time (Right Exlusive)",
         min_value=dr_min_time,
         max_value=dr_max_time,
         value=(dr_min_time, dr_max_time),
         format="HH:mm"
     )
         selected_range = st.slider(
-            "Select Range for Box Size (Right Exclusive)",
+            "Select Range for Box Size (Right Exlusive)",
             min_value, max_value, (min_value, max_value)
         )
 
@@ -245,33 +203,11 @@ if uploaded_file is not None:
 
     outer_col1, graph_col1, graph_col2, outer_col2 = st.columns([0.1, 11, 11, 0.1])  # Adds margin on left & right
 
-    ret_custom_order = [
-        'Beyond -1',
-        '-0.75 to -0.999',
-        '-0.5 to -0.749',
-        '-0.25 to -0.499',
-        '0 to -0.249',
-        '0.25 to 0.001',
-        '0.5 to 0.249',
-        '0.75 to 0.499',
-        '1 to 0.749',
-        'Above 1'
-    ]
+    m7box_ret_custom_order = odr_m7box_ret_custom_order if selected_dr_range == 'ODR' else rdr_m7Box_ret_custom_order
+    m7box_ext_custom_order = odr_m7box_ext_custom_order if selected_dr_range == 'ODR' else rdr_m7Box_ext_custom_order
 
-    ext_custom_order = [
-        'Below 0.5',
-        '0.5 to 0.999',
-        '1 to 1.499',
-        '1.5 to 1.999',
-        '2 to 2.499',
-        '2.5 to 2.999',
-        '3 to 3.499',
-        '3.5 to 3.999',
-        '4 to 4.49',
-        '4.5 to 4.999',
-        'Above 5'
-    ]
-
+    dr_ret_custom_order = odr_dr_ret_custom_order if selected_dr_range == 'ODR' else rdr_dr_ret_custom_order
+    dr_ext_custom_order = odr_dr_ext_custom_order if selected_dr_range == 'ODR' else rdr_dr_ext_custom_order
 
     # First Graph with Custom Order
     with graph_col1:
@@ -284,7 +220,7 @@ if uploaded_file is not None:
             value_counts_df['text'] = value_counts_df.apply(lambda row: f"{row['count']} ({row['percentage']:.2f}%)", axis=1)
 
             value_counts_df[variable_column_1] = pd.Categorical(
-                value_counts_df[variable_column_1], categories=ret_custom_order, ordered=True)
+                value_counts_df[variable_column_1], categories=m7box_ret_custom_order, ordered=True)
             value_counts_df = value_counts_df.sort_values(by=variable_column_1)
 
             fig1 = px.bar(
@@ -294,11 +230,25 @@ if uploaded_file is not None:
                 text='text',
                 title=f"{selected_dr_range} M7Box Retracements After M7Box Confirmation",
             )
+
+            # Get the 30th and 70th percentile values for default zoom
+            default_y_min = value_counts_df['count'].quantile(0.3)
+            default_y_max = value_counts_df['count'].quantile(0.7)
+
+            # Ensure default_y_min and default_y_max are valid numbers
+            if pd.isna(default_y_min) or pd.isna(default_y_max):
+                default_y_min = value_counts_df['count'].min()
+                default_y_max = value_counts_df['count'].max()
+
+            # Add a small buffer to default_y_max for better visualization
+            default_y_max *= 1.1  # Add 10% padding
+
             fig1.update_layout(
                 height=500,  # Even taller graph
                 margin=dict(l=5, r=5, t=30, b=30),  # Reduce all margins
-                xaxis_tickangle=90,  # Keep labels horizontal
+                xaxis_tickangle=90, # Keep labels horizontal
             )
+
             fig1.update_traces(texttemplate='%{text}', textposition='outside', marker_color='#008080')
             fig1.update_layout(yaxis_title="Count",
                                xaxis_title='M7Box Retracements - Distribution',
@@ -313,7 +263,7 @@ if uploaded_file is not None:
             value_counts_df_3['text'] = value_counts_df_3.apply(lambda row: f"{row['count']} ({row['percentage']:.2f}%)", axis=1)
 
             value_counts_df_3[variable_column_3] = pd.Categorical(
-                value_counts_df_3[variable_column_3], categories=ext_custom_order, ordered=True)
+                value_counts_df_3[variable_column_3], categories=m7box_ext_custom_order, ordered=True)
             value_counts_df_3 = value_counts_df_3.sort_values(by=variable_column_3)
 
             fig3 = px.bar(
@@ -344,7 +294,7 @@ if uploaded_file is not None:
             value_counts_df_2['text'] = value_counts_df_2.apply(lambda row: f"{row['count']} ({row['percentage']:.2f}%)", axis=1)
 
             value_counts_df_2[variable_column_2] = pd.Categorical(
-                value_counts_df_2[variable_column_2], categories=ret_custom_order, ordered=True)
+                value_counts_df_2[variable_column_2], categories=dr_ret_custom_order, ordered=True)
             value_counts_df_2 = value_counts_df_2.sort_values(by=variable_column_2)
 
             fig2 = px.bar(
@@ -373,7 +323,7 @@ if uploaded_file is not None:
             value_counts_df_4['text'] = value_counts_df_4.apply(lambda row: f"{row['count']} ({row['percentage']:.2f}%)", axis=1)
 
             value_counts_df_4[variable_column_4] = pd.Categorical(
-                value_counts_df_4[variable_column_4], categories=ext_custom_order, ordered=True)
+                value_counts_df_4[variable_column_4], categories=dr_ext_custom_order, ordered=True)
             value_counts_df_4 = value_counts_df_4.sort_values(by=variable_column_4)
 
             fig4 = px.bar(
