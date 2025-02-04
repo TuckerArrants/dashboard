@@ -249,6 +249,12 @@ if uploaded_file is not None:
     dr_ret_custom_order = odr_dr_ret_custom_order if selected_dr_range == 'ODR' else rdr_dr_ret_custom_order
     dr_ext_custom_order = odr_dr_ext_custom_order if selected_dr_range == 'ODR' else rdr_dr_ext_custom_order
 
+    ret_x_min = "-1.500 to -1.251"  # Leftmost bucket from image
+    ret_x_max = "0.250 to 0.499"
+
+    ext_x_min = "0.000 to 0.499"  # Leftmost bucket from image
+    ext_x_max = "5.000 to 5.499"
+
     # First Graph with Custom Order
     with graph_col1:
 
@@ -263,17 +269,19 @@ if uploaded_file is not None:
                 value_counts_df[variable_column_1], categories=m7box_ret_custom_order, ordered=True)
             value_counts_df = value_counts_df.sort_values(by=variable_column_1)
 
-            ret_x_min = "-1.500 to -1.251"  # Leftmost bucket from image
-            ret_x_max = "0.250 to 0.499" 
+            m7box_available_ret = [cat for cat in m7box_ret_custom_order if cat in value_counts_df[variable_column_1].unique()]
 
-            ext_x_min = "0.000 to 0.499"  # Leftmost bucket from image
-            ext_x_max = "5.000 to 5.499" 
+            try:
+                m7box_ret_x_min_index = m7box_available_ret.index(ret_x_min)
+                m7box_ret_x_max_index = m7box_available_ret.index(ret_x_max)
 
-            ret_x_min_index = m7box_ret_custom_order.index(ret_x_min)
-            ret_x_max_index = m7box_ret_custom_order.index(ret_x_max)
+            except ValueError:
+                m7box_ret_x_min_index = 0
+                m7box_ret_x_max_index = len(m7box_available_ret) - 1
 
-            ext_x_min_index = m7box_ext_custom_order.index(ext_x_min)
-            ext_x_max_index = m7box_ext_custom_order.index(ext_x_max)
+            # Ensure correct order for range
+            m7box_ret_start_index = min(m7box_ret_x_min_index, m7box_ret_x_max_index)
+            m7box_ret_end_index = max(m7box_ret_x_min_index, m7box_ret_x_max_index)
 
             fig1 = px.bar(
                 value_counts_df,
@@ -291,12 +299,13 @@ if uploaded_file is not None:
                 xaxis=dict(
                 categoryorder="array",
                 categoryarray=m7box_ret_custom_order,  # Maintain correct ordering
-                range=[ret_x_min_index - 0.5, ret_x_max_index + 0.5],  # ✅ Hardcoded zoom range
+                range=[m7box_ret_start_index - 0.5, m7box_ret_end_index + 0.5],                    
                 tickmode="array",
                 tickvals=m7box_ret_custom_order,  # Keep all tick labels visible
                 fixedrange=False  # Allow users to pan/zoom
 )
-                    )
+                )
+              
 
             fig1.update_traces(texttemplate='%{text}', textposition='outside', marker_color='#008080')
             fig1.update_layout(yaxis_title="Count",
@@ -315,6 +324,19 @@ if uploaded_file is not None:
                 value_counts_df_3[variable_column_3], categories=m7box_ext_custom_order, ordered=True)
             value_counts_df_3 = value_counts_df_3.sort_values(by=variable_column_3)
 
+            m7box_available_ext = [cat for cat in m7box_ext_custom_order if cat in value_counts_df_3[variable_column_3].unique()]
+
+            try:
+                m7box_ext_x_min_index = m7box_available_ext.index(ext_x_min)
+                m7box_ext_x_max_index = m7box_available_ext.index(ext_x_max)
+
+            except ValueError:
+                m7box_ext_x_min_index = 0
+                m7box_ext_x_max_index = len(m7box_available_ext) - 1
+
+            m7box_ext_start_index = min(m7box_ext_x_min_index, m7box_ext_x_max_index)
+            m7box_ext_end_index = max(m7box_ext_x_min_index, m7box_ext_x_max_index)
+
             fig3 = px.bar(
                 value_counts_df_3,
                 x=variable_column_3,
@@ -329,7 +351,7 @@ if uploaded_file is not None:
                 xaxis=dict(
                 categoryorder="array",
                 categoryarray=m7box_ext_custom_order,  # Maintain correct ordering
-                range=[ext_x_min_index -0.5, ext_x_max_index+0.5],  # ✅ Hardcoded zoom range
+                range=[m7box_ext_start_index - 0.5, m7box_ext_end_index + 0.5],
                 tickmode="array",
                 tickvals=m7box_ext_custom_order,  # Keep all tick labels visible
                 fixedrange=False  # Allow users to pan/zoom
@@ -354,6 +376,19 @@ if uploaded_file is not None:
                 value_counts_df_2[variable_column_2], categories=dr_ret_custom_order, ordered=True)
             value_counts_df_2 = value_counts_df_2.sort_values(by=variable_column_2)
 
+            dr_available_ret = [cat for cat in dr_ret_custom_order if cat in value_counts_df_2[variable_column_2].unique()]
+
+            try:
+                dr_ret_x_min_index = dr_available_ret.index(ret_x_min)
+                dr_ret_x_max_index = dr_available_ret.index(ret_x_max)
+
+            except ValueError:
+                dr_ret_x_min_index = 0
+                dr_ret_x_max_index = len(dr_available_ret) - 1
+
+            dr_ret_start_index = min(dr_ret_x_min_index, dr_ret_x_max_index)
+            dr_ret_end_index = max(dr_ret_x_min_index, dr_ret_x_max_index)
+
             fig2 = px.bar(
                 value_counts_df_2,
                 x=variable_column_2,
@@ -367,10 +402,10 @@ if uploaded_file is not None:
                 xaxis_tickangle=90,  # Keep labels horizontal
                 xaxis=dict(
                 categoryorder="array",
-                categoryarray=m7box_ret_custom_order,  # Maintain correct ordering
-                range=[ret_x_min_index - 0.5, ret_x_max_index + 0.5],  # ✅ Hardcoded zoom range
+                categoryarray=dr_ret_custom_order,  # Maintain correct ordering
+                range=[dr_ret_start_index - 0.5, dr_ret_end_index + 0.5],
                 tickmode="array",
-                tickvals=m7box_ret_custom_order,  # Keep all tick labels visible
+                tickvals=dr_ret_custom_order,  # Keep all tick labels visible
                 fixedrange=False  # Allow users to pan/zoom
 )
             )
@@ -391,6 +426,19 @@ if uploaded_file is not None:
                 value_counts_df_4[variable_column_4], categories=dr_ext_custom_order, ordered=True)
             value_counts_df_4 = value_counts_df_4.sort_values(by=variable_column_4)
 
+            dr_available_ext = [cat for cat in dr_ext_custom_order if cat in value_counts_df_4[variable_column_4].unique()]
+
+            try:
+                dr_ext_x_min_index = dr_available_ext.index(ext_x_min)
+                dr_ext_x_max_index = dr_available_ext.index(ext_x_max)
+
+            except ValueError:
+                dr_ext_x_min_index = 0
+                dr_ext_x_max_index = len(dr_available_ext) - 1
+
+            dr_ext_start_index = min(dr_ext_x_min_index, dr_ext_x_max_index)
+            dr_ext_end_index = max(dr_ext_x_min_index, dr_ext_x_max_index)
+
             fig4 = px.bar(
                 value_counts_df_4,
                 x=variable_column_4,
@@ -404,10 +452,10 @@ if uploaded_file is not None:
                 xaxis_tickangle=90,  # Keep labels horizontal
                 xaxis=dict(
                 categoryorder="array",
-                categoryarray=m7box_ext_custom_order,  # Maintain correct ordering
-                range=[ext_x_min_index -0.5, ext_x_max_index+0.5],  # ✅ Hardcoded zoom range
+                categoryarray=dr_ext_custom_order,  # Maintain correct ordering
+                range=[dr_ext_start_index - 0.5, dr_ext_end_index + 0.5],
                 tickmode="array",
-                tickvals=m7box_ext_custom_order,  # Keep all tick labels visible
+                tickvals=dr_ext_custom_order,  # Keep all tick labels visible
                 fixedrange=False  # Allow users to pan/zoom
 )
             )
