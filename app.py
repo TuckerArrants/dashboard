@@ -135,7 +135,7 @@ if uploaded_file is not None:
 
     with col4:
         m7box_selected_time_range = st.slider(
-        "Select Time Range for M7Box Confirmation Time (Right Exlusive)",
+        "Select Time Range for M7Box Confirmation Time (Right Exclusive)",
         min_value=m7box_min_time,
         max_value=m7box_max_time,
         value=(m7box_min_time, m7box_max_time),
@@ -143,14 +143,14 @@ if uploaded_file is not None:
     )
 
         dr_selected_time_range = st.slider(
-        "Select Time Range for DR Confirmation Time (Right Exlusive)",
+        "Select Time Range for DR Confirmation Time (Right Exclusive)",
         min_value=dr_min_time,
         max_value=dr_max_time,
         value=(dr_min_time, dr_max_time),
         format="HH:mm"
     )
         selected_range = st.slider(
-            "Select Range for Box Size (Right Exlusive)",
+            "Select Range for Box Size (Right Exclusive)",
             min_value, max_value, (min_value, max_value)
         )
 
