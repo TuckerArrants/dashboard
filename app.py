@@ -102,7 +102,7 @@ if uploaded_file is not None:
     dr_range_options = ['ODR', 'RDR']
     selected_dr_range = st.sidebar.selectbox("Select DR Range", dr_range_options)
     day_options = ['All'] + ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday']
-    selected_day = st.sidebar.selectbox("Day of Week", day_options)
+    selected_day = st.sidebar.selectbox("Day if Week", day_options)
 
     # Plotting columns
     variable_column_1 = f"{selected_dr_range}_M7Box_Max_Retracement_STD_Quarters_Grouped"
@@ -176,6 +176,7 @@ if uploaded_file is not None:
     filter_columns = [
         ('Instrument', selected_instrument),
         (f'{selected_dr_range}_DR_Confirmation_Direction', selected_dr_confirmation),
+        (f'{selected_dr_range}_M7Box_Confirmation_Direction', selected_m7box_conf_direction),
         (f'{selected_dr_range}_M7Box_Direction', selected_m7box_direction),
         (f'{selected_dr_range}_Confirmation_Valid', selected_dr_confirmation_valid),
         (f'{selected_dr_range}_M7Box_Confirmation_Valid', selected_m7box_confirmation_valid),
@@ -200,6 +201,41 @@ if uploaded_file is not None:
             (df[f'{selected_dr_range}_DR_Confirmation_Time_NY'] >= dr_selected_time_range[0]) &
             (df[f'{selected_dr_range}_DR_Confirmation_Time_NY'] < dr_selected_time_range[1])]
 
+######################################################
+### Metric Tiles
+######################################################
+    total_count = len(df)
+
+    # Probability of hitting -1 (or less)
+    prob_neg_1 = df[df[f'{selected_dr_range}_M7Box_Max_Retracement_STD'] <= -1].shape[0] / total_count if total_count > 0 else 0
+    # Probability of hitting 0
+    prob_0 = df[df[f'{selected_dr_range}_M7Box_Max_Retracement_STD'] <= 0].shape[0] / total_count if total_count > 0 else 0
+
+    # Probability of hitting -1 (or less)
+    prob_neg_1_dr = df[df[f'{selected_dr_range}_DR_Max_Retracement_STD'] <= -1].shape[0] / total_count if total_count > 0 else 0
+
+    # Probability of hitting 0
+    prob_0_dr = df[df[f'{selected_dr_range}_DR_Max_Retracement_STD'] <= 0].shape[0] / total_count if total_count > 0 else 0
+
+    # ✅ Step 2: Create 4 Stat Panels
+    col1, col2, col3, col4 = st.columns(4)
+
+    with col1:
+        st.metric(label="% of Hitting -1 After M7Box Conf.", value=f"{prob_neg_1:.2%}")
+
+    with col2:
+        st.metric(label="% of Hitting 0 After M7Box Conf.", value=f"{prob_0:.2%}")
+
+    with col3:
+        st.metric(label="% of Hitting -1 After DR Conf.", value=f"{prob_neg_1_dr:.2%}")
+
+    with col4:
+        st.metric(label="% of Hitting 0 After DR Conf.", value=f"{prob_0_dr:.2%}")
+
+######################################################
+### Retracement Graphs
+######################################################
+
     outer_col1, graph_col1, graph_col2, outer_col2 = st.columns([0.1, 11, 11, 0.1])  # Adds margin on left & right
 
     m7box_ret_custom_order = odr_m7box_ret_custom_order if selected_dr_range == 'ODR' else rdr_m7Box_ret_custom_order
@@ -207,6 +243,7 @@ if uploaded_file is not None:
 
     dr_ret_custom_order = odr_dr_ret_custom_order if selected_dr_range == 'ODR' else rdr_dr_ret_custom_order
     dr_ext_custom_order = odr_dr_ext_custom_order if selected_dr_range == 'ODR' else rdr_dr_ext_custom_order
+
 
     # First Graph with Custom Order
     with graph_col1:
@@ -246,6 +283,7 @@ if uploaded_file is not None:
                 height=500,  # Even taller graph
                 margin=dict(l=5, r=5, t=30, b=30),  # Reduce all margins
                 xaxis_tickangle=90, # Keep labels horizontal
+
             )
 
             fig1.update_traces(texttemplate='%{text}', textposition='outside', marker_color='#008080')
