@@ -249,7 +249,6 @@ if uploaded_file is not None:
     dr_ret_custom_order = odr_dr_ret_custom_order if selected_dr_range == 'ODR' else rdr_dr_ret_custom_order
     dr_ext_custom_order = odr_dr_ext_custom_order if selected_dr_range == 'ODR' else rdr_dr_ext_custom_order
 
-
     # First Graph with Custom Order
     with graph_col1:
 
@@ -264,6 +263,18 @@ if uploaded_file is not None:
                 value_counts_df[variable_column_1], categories=m7box_ret_custom_order, ordered=True)
             value_counts_df = value_counts_df.sort_values(by=variable_column_1)
 
+            ret_x_min = "-1.500 to -1.251"  # Leftmost bucket from image
+            ret_x_max = "0.250 to 0.499" 
+
+            ext_x_min = "0.000 to 0.499"  # Leftmost bucket from image
+            ext_x_max = "5.000 to 5.499" 
+
+            ret_x_min_index = m7box_ret_custom_order.index(ret_x_min)
+            ret_x_max_index = m7box_ret_custom_order.index(ret_x_max)
+
+            ext_x_min_index = m7box_ext_custom_order.index(ext_x_min)
+            ext_x_max_index = m7box_ext_custom_order.index(ext_x_max)
+
             fig1 = px.bar(
                 value_counts_df,
                 x=variable_column_1,
@@ -272,24 +283,20 @@ if uploaded_file is not None:
                 title=f"{selected_dr_range} M7Box Retracements After M7Box Confirmation",
             )
 
-            # Get the 30th and 70th percentile values for default zoom
-            default_y_min = value_counts_df['count'].quantile(0.3)
-            default_y_max = value_counts_df['count'].quantile(0.7)
-
-            # Ensure default_y_min and default_y_max are valid numbers
-            if pd.isna(default_y_min) or pd.isna(default_y_max):
-                default_y_min = value_counts_df['count'].min()
-                default_y_max = value_counts_df['count'].max()
-
-            # Add a small buffer to default_y_max for better visualization
-            default_y_max *= 1.1  # Add 10% padding
 
             fig1.update_layout(
                 height=500,  # Even taller graph
                 margin=dict(l=5, r=5, t=30, b=30),  # Reduce all margins
                 xaxis_tickangle=90, # Keep labels horizontal
-
-            )
+                xaxis=dict(
+                categoryorder="array",
+                categoryarray=m7box_ret_custom_order,  # Maintain correct ordering
+                range=[ret_x_min_index - 0.5, ret_x_max_index + 0.5],  # ✅ Hardcoded zoom range
+                tickmode="array",
+                tickvals=m7box_ret_custom_order,  # Keep all tick labels visible
+                fixedrange=False  # Allow users to pan/zoom
+)
+                    )
 
             fig1.update_traces(texttemplate='%{text}', textposition='outside', marker_color='#008080')
             fig1.update_layout(yaxis_title="Count",
@@ -319,6 +326,14 @@ if uploaded_file is not None:
                 height=500,  # Even taller graph
                 margin=dict(l=5, r=5, t=30, b=30),  # Reduce all margins
                 xaxis_tickangle=90,  # Keep labels horizontal
+                xaxis=dict(
+                categoryorder="array",
+                categoryarray=m7box_ext_custom_order,  # Maintain correct ordering
+                range=[ext_x_min_index -0.5, ext_x_max_index+0.5],  # ✅ Hardcoded zoom range
+                tickmode="array",
+                tickvals=m7box_ext_custom_order,  # Keep all tick labels visible
+                fixedrange=False  # Allow users to pan/zoom
+)
             )
             fig3.update_traces(texttemplate='%{text}', textposition='outside', marker_color='#008080')
             fig3.update_layout(yaxis_title="Count",
@@ -350,6 +365,14 @@ if uploaded_file is not None:
                 height=500,  # Even taller graph
                 margin=dict(l=5, r=5, t=30, b=30),  # Reduce all margins
                 xaxis_tickangle=90,  # Keep labels horizontal
+                xaxis=dict(
+                categoryorder="array",
+                categoryarray=m7box_ret_custom_order,  # Maintain correct ordering
+                range=[ret_x_min_index - 0.5, ret_x_max_index + 0.5],  # ✅ Hardcoded zoom range
+                tickmode="array",
+                tickvals=m7box_ret_custom_order,  # Keep all tick labels visible
+                fixedrange=False  # Allow users to pan/zoom
+)
             )
             fig2.update_traces(texttemplate='%{text}', textposition='outside', marker_color='#008080')
             fig2.update_layout(yaxis_title="Count",
@@ -379,7 +402,16 @@ if uploaded_file is not None:
                 height=500,  # Even taller graph
                 margin=dict(l=5, r=5, t=30, b=30),  # Reduce all margins
                 xaxis_tickangle=90,  # Keep labels horizontal
+                xaxis=dict(
+                categoryorder="array",
+                categoryarray=m7box_ext_custom_order,  # Maintain correct ordering
+                range=[ext_x_min_index -0.5, ext_x_max_index+0.5],  # ✅ Hardcoded zoom range
+                tickmode="array",
+                tickvals=m7box_ext_custom_order,  # Keep all tick labels visible
+                fixedrange=False  # Allow users to pan/zoom
+)
             )
+            
             fig4.update_traces(texttemplate='%{text}', textposition='outside', marker_color='#008080')
             fig4.update_layout(yaxis_title="Count",
                                xaxis_title='M7Box Extensions - Distribution',
