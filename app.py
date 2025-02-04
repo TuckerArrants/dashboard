@@ -91,7 +91,7 @@ if uploaded_file is not None:
     dr_range_options = ['ODR', 'RDR']
     selected_dr_range = st.sidebar.selectbox("Select DR Range", dr_range_options)
     day_options = ['All'] + ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday']
-    selected_day = st.sidebar.selectbox("Day if Week", day_options)
+    selected_day = st.sidebar.selectbox("Day of Week", day_options)
 
     ### **Main Panel: Filters Above Graph**
     col1, col2 = st.columns(2)
