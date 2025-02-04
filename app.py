@@ -80,17 +80,6 @@ uploaded_file = st.file_uploader("Upload a CSV file", type=["csv"])
 if uploaded_file is not None:
     df = pd.read_csv(uploaded_file)
 
-    # Ensure required column is created
-    df['ODR_M7Box_Max_Retracement_STD_Quarters_Grouped'], odr_m7box_ret_custom_order = dynamic_binning(df, 'ODR_M7Box_Max_Retracement_STD', bin_width=0.25)
-    df['RDR_M7Box_Max_Retracement_STD_Quarters_Grouped'], rdr_m7Box_ret_custom_order= dynamic_binning(df, 'RDR_M7Box_Max_Retracement_STD', bin_width=0.25)
-    df['ODR_DR_Max_Retracement_STD_Quarters_Grouped'], odr_dr_ret_custom_order = dynamic_binning(df, 'ODR_DR_Max_Retracement_STD', bin_width=0.25)
-    df['RDR_DR_Max_Retracement_STD_Quarters_Grouped'], rdr_dr_ret_custom_order= dynamic_binning(df, 'RDR_DR_Max_Retracement_STD', bin_width=0.25)
-
-    df['ODR_M7Box_Max_Extension_STD_Halves_Grouped'], odr_m7box_ext_custom_order = dynamic_binning(df, 'ODR_M7Box_Max_Extension_STD', bin_width=0.5)
-    df['RDR_M7Box_Max_Extension_STD_Halves_Grouped'], rdr_m7Box_ext_custom_order= dynamic_binning(df, 'RDR_M7Box_Max_Extension_STD', bin_width=0.5)
-    df['ODR_DR_Max_Extension_STD_Halves_Grouped'], odr_dr_ext_custom_order = dynamic_binning(df, 'ODR_DR_Max_Extension_STD', bin_width=0.5)
-    df['RDR_DR_Max_Extension_STD_Halves_Grouped'], rdr_dr_ext_custom_order = dynamic_binning(df, 'RDR_DR_Max_Extension_STD', bin_width=0.5)
-
     df['ODR_M7Box_Confirmation_Time_NY'] = pd.to_datetime(df['ODR_M7Box_Confirmation_Time_NY'], errors='coerce').dt.time
     df['ODR_DR_Confirmation_Time_NY'] = pd.to_datetime(df['ODR_DR_Confirmation_Time_NY'], errors='coerce').dt.time
     df['RDR_M7Box_Confirmation_Time_NY'] = pd.to_datetime(df['RDR_M7Box_Confirmation_Time_NY'], errors='coerce').dt.time
@@ -102,13 +91,7 @@ if uploaded_file is not None:
     dr_range_options = ['ODR', 'RDR']
     selected_dr_range = st.sidebar.selectbox("Select DR Range", dr_range_options)
     day_options = ['All'] + ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday']
-    selected_day = st.sidebar.selectbox("Day of Week", day_options)
-
-    # Plotting columns
-    variable_column_1 = f"{selected_dr_range}_M7Box_Max_Retracement_STD_Quarters_Grouped"
-    variable_column_2 = f"{selected_dr_range}_DR_Max_Retracement_STD_Quarters_Grouped"
-    variable_column_3 = f"{selected_dr_range}_M7Box_Max_Extension_STD_Halves_Grouped"
-    variable_column_4 = f"{selected_dr_range}_DR_Max_Extension_STD_Halves_Grouped"
+    selected_day = st.sidebar.selectbox("Day if Week", day_options)
 
     ### **Main Panel: Filters Above Graph**
     col1, col2 = st.columns(2)
@@ -175,6 +158,7 @@ if uploaded_file is not None:
     ### **Apply Filters (Only if "All" is not selected)**
     filter_columns = [
         ('Instrument', selected_instrument),
+        ('Day of Week', selected_day),
         (f'{selected_dr_range}_DR_Confirmation_Direction', selected_dr_confirmation),
         (f'{selected_dr_range}_M7Box_Confirmation_Direction', selected_m7box_conf_direction),
         (f'{selected_dr_range}_M7Box_Direction', selected_m7box_direction),
@@ -200,6 +184,27 @@ if uploaded_file is not None:
     df = df[(df[f'{selected_dr_range}_DR_Confirmation_Time_NY'].notna()) &
             (df[f'{selected_dr_range}_DR_Confirmation_Time_NY'] >= dr_selected_time_range[0]) &
             (df[f'{selected_dr_range}_DR_Confirmation_Time_NY'] < dr_selected_time_range[1])]
+
+######################################################
+### Get retracements and extensions
+######################################################
+
+    # Ensure required column is created
+    df['ODR_M7Box_Max_Retracement_STD_Quarters_Grouped'], odr_m7box_ret_custom_order = dynamic_binning(df, 'ODR_M7Box_Max_Retracement_STD', bin_width=0.25)
+    df['RDR_M7Box_Max_Retracement_STD_Quarters_Grouped'], rdr_m7Box_ret_custom_order= dynamic_binning(df, 'RDR_M7Box_Max_Retracement_STD', bin_width=0.25)
+    df['ODR_DR_Max_Retracement_STD_Quarters_Grouped'], odr_dr_ret_custom_order = dynamic_binning(df, 'ODR_DR_Max_Retracement_STD', bin_width=0.25)
+    df['RDR_DR_Max_Retracement_STD_Quarters_Grouped'], rdr_dr_ret_custom_order= dynamic_binning(df, 'RDR_DR_Max_Retracement_STD', bin_width=0.25)
+
+    df['ODR_M7Box_Max_Extension_STD_Halves_Grouped'], odr_m7box_ext_custom_order = dynamic_binning(df, 'ODR_M7Box_Max_Extension_STD', bin_width=0.5)
+    df['RDR_M7Box_Max_Extension_STD_Halves_Grouped'], rdr_m7Box_ext_custom_order= dynamic_binning(df, 'RDR_M7Box_Max_Extension_STD', bin_width=0.5)
+    df['ODR_DR_Max_Extension_STD_Halves_Grouped'], odr_dr_ext_custom_order = dynamic_binning(df, 'ODR_DR_Max_Extension_STD', bin_width=0.5)
+    df['RDR_DR_Max_Extension_STD_Halves_Grouped'], rdr_dr_ext_custom_order = dynamic_binning(df, 'RDR_DR_Max_Extension_STD', bin_width=0.5)
+
+    # Plotting columns
+    variable_column_1 = f"{selected_dr_range}_M7Box_Max_Retracement_STD_Quarters_Grouped"
+    variable_column_2 = f"{selected_dr_range}_DR_Max_Retracement_STD_Quarters_Grouped"
+    variable_column_3 = f"{selected_dr_range}_M7Box_Max_Extension_STD_Halves_Grouped"
+    variable_column_4 = f"{selected_dr_range}_DR_Max_Extension_STD_Halves_Grouped"
 
 ######################################################
 ### Metric Tiles
