@@ -135,7 +135,7 @@ if uploaded_file is not None:
 
     with col4:
         m7box_selected_time_range = st.slider(
-        "Select Time Range for M7Box Confirmation Time (Right Exclusive)",
+        "M7Box Confirmation Time (Right Exclusive)",
         min_value=m7box_min_time,
         max_value=m7box_max_time,
         value=(m7box_min_time, m7box_max_time),
@@ -143,16 +143,23 @@ if uploaded_file is not None:
     )
 
         dr_selected_time_range = st.slider(
-        "Select Time Range for DR Confirmation Time (Right Exclusive)",
+        "DR Confirmation Time (Right Exclusive)",
         min_value=dr_min_time,
         max_value=dr_max_time,
         value=(dr_min_time, dr_max_time),
         format="HH:mm"
     )
         selected_range = st.slider(
-            "Select Range for Box Size (Right Exclusive)",
+            "Box Size (Right Exclusive)",
             min_value, max_value, (min_value, max_value)
         )
+
+        if selected_dr_range == 'ODR':
+              hit_dr_session = 'ADR'
+        elif selected_dr_range == 'RDR':
+              hit_dr_session = 'ODR'
+        mid_hit_options = df[f'{hit_dr_session} Mid Broken '].dropna().unique().tolist()
+        selected_mid_hit = st.multiselect(f"{hit_dr_session} Mid Hit Time", ["All"] + mid_hit_options, default=["All"])
 
 
     ### **Apply Filters (Only if "All" is not selected)**
@@ -173,6 +180,10 @@ if uploaded_file is not None:
     # Multi-Select Filtering for RDR Model
     if "All" not in selected_dr_models:
         df = df[df[f'{selected_dr_range} Model'].isin(selected_dr_models)]
+
+    # Multi-Select Filtering for RDR Model
+    if "All" not in selected_mid_hit:
+        df = df[df[f'{hit_dr_session} Mid Broken '].isin(selected_mid_hit)]
 
     # Conf time and M7Box conf time filter
     df = df[df[f'{selected_dr_range} M7Box / IDR'].between(selected_range[0], selected_range[1], inclusive='left')]
@@ -299,13 +310,13 @@ if uploaded_file is not None:
                 xaxis=dict(
                 categoryorder="array",
                 categoryarray=m7box_ret_custom_order,  # Maintain correct ordering
-                range=[m7box_ret_start_index - 0.5, m7box_ret_end_index + 0.5],                    
+                range=[m7box_ret_start_index - 0.5, m7box_ret_end_index + 0.5],
                 tickmode="array",
                 tickvals=m7box_ret_custom_order,  # Keep all tick labels visible
                 fixedrange=False  # Allow users to pan/zoom
 )
                 )
-              
+
 
             fig1.update_traces(texttemplate='%{text}', textposition='outside', marker_color='#008080')
             fig1.update_layout(yaxis_title="Count",
@@ -459,7 +470,7 @@ if uploaded_file is not None:
                 fixedrange=False  # Allow users to pan/zoom
 )
             )
-            
+
             fig4.update_traces(texttemplate='%{text}', textposition='outside', marker_color='#008080')
             fig4.update_layout(yaxis_title="Count",
                                xaxis_title='M7Box Extensions - Distribution',
