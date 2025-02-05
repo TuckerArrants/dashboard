@@ -131,6 +131,7 @@ if uploaded_file is not None:
     # Get min and max absolute values (ensuring positive range)
     min_value = df[f'{selected_dr_range} M7Box / IDR'].min()
     max_value = df[f'{selected_dr_range} M7Box / IDR'].max()
+
     col3, col4, col5 = st.columns([1, 5, 1])
 
     with col4:
@@ -154,11 +155,17 @@ if uploaded_file is not None:
             min_value, max_value, (min_value, max_value)
         )
 
+    left_spacer, left_hit, right_hit, right_spacer = st.columns([1.5, 2.5, 2.5, 1.5])
+    with left_hit:
         adr_mid_hit_options = df[f'ADR Mid Broken '].dropna().unique().tolist()
         selected_adr_mid_hit = st.multiselect(f"ADR Mid Hit Time", ["All"] + adr_mid_hit_options, default=["All"])
 
+    with right_hit:
         odr_mid_hit_options = df[f'ODR Mid Broken '].dropna().unique().tolist()
         selected_odr_mid_hit = st.multiselect(f"ODR Mid Hit Time", ["All"] + odr_mid_hit_options, default=["All"])
+
+    st.write("<br><br>", unsafe_allow_html=True)
+
 
 
     ### **Apply Filters (Only if "All" is not selected)**
@@ -227,29 +234,56 @@ if uploaded_file is not None:
 
     # Probability of hitting -1 (or less)
     prob_neg_1 = df[df[f'{selected_dr_range}_M7Box_Max_Retracement_STD'] <= -1].shape[0] / total_count if total_count > 0 else 0
+    prob_pos_05 = df[df[f'{selected_dr_range}_M7Box_Max_Extension_STD'] >= 0.5].shape[0] / total_count if total_count > 0 else 0
+
+    # Probability of hitting -.25
+    median = df[f'{selected_dr_range}_M7Box_Max_Retracement_STD'].median()
+    median_ext = df[f'{selected_dr_range}_M7Box_Max_Extension_STD'].median()
+
     # Probability of hitting 0
     prob_0 = df[df[f'{selected_dr_range}_M7Box_Max_Retracement_STD'] <= 0].shape[0] / total_count if total_count > 0 else 0
+    prob_pos_1 = df[df[f'{selected_dr_range}_M7Box_Max_Extension_STD'] >= 1].shape[0] / total_count if total_count > 0 else 0
 
     # Probability of hitting -1 (or less)
     prob_neg_1_dr = df[df[f'{selected_dr_range}_DR_Max_Retracement_STD'] <= -1].shape[0] / total_count if total_count > 0 else 0
+    prob_pos_05_dr = df[df[f'{selected_dr_range}_DR_Max_Extension_STD'] >= 0.5].shape[0] / total_count if total_count > 0 else 0
+
+    # Probability of hitting -.25
+    median_dr = df[f'{selected_dr_range}_DR_Max_Retracement_STD'].median()
+    median_ext_dr = df[f'{selected_dr_range}_DR_Max_Extension_STD'].median()
 
     # Probability of hitting 0
     prob_0_dr = df[df[f'{selected_dr_range}_DR_Max_Retracement_STD'] <= 0].shape[0] / total_count if total_count > 0 else 0
+    prob_pos_1_dr = df[df[f'{selected_dr_range}_DR_Max_Extension_STD'] >= 1].shape[0] / total_count if total_count > 0 else 0
+
 
     # ✅ Step 2: Create 4 Stat Panels
-    col1, col2, col3, col4 = st.columns(4)
+    col1, col2, col3, col4, col5, col6 = st.columns(6)
 
     with col1:
         st.metric(label="% of Hitting -1 After M7Box Conf.", value=f"{prob_neg_1:.2%}")
+        st.metric(label="% of Hitting 0.5 After M7Box Conf.", value=f"{prob_pos_05:.2%}")
 
     with col2:
         st.metric(label="% of Hitting 0 After M7Box Conf.", value=f"{prob_0:.2%}")
+        st.metric(label="% of Hitting 1 After M7Box Conf.", value=f"{prob_pos_1:.2%}")
 
     with col3:
-        st.metric(label="% of Hitting -1 After DR Conf.", value=f"{prob_neg_1_dr:.2%}")
+        st.metric(label="Median Ret. After M7Box Conf.", value=f"{median:.2f}")
+        st.metric(label="Median Ext. After M7Box Conf.", value=f"{median_ext:.2f}")
 
     with col4:
+        st.metric(label="% of Hitting -1 After DR Conf.", value=f"{prob_neg_1_dr:.2%}")
+        st.metric(label="% of Hitting 0.5 After DR Conf.", value=f"{prob_pos_05_dr:.2%}")
+
+    with col5:
         st.metric(label="% of Hitting 0 After DR Conf.", value=f"{prob_0_dr:.2%}")
+        st.metric(label="% of Hitting 1 After DR Conf.", value=f"{prob_pos_1_dr:.2%}")
+
+    with col6:
+        st.metric(label="Median Ret. After DR Conf.", value=f"{median_dr:.2f}")
+        st.metric(label="Median Ext. After DR Conf.", value=f"{median_ext_dr:.2f}")
+
 
 ######################################################
 ### Retracement Graphs
