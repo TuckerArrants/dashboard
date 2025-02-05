@@ -154,12 +154,11 @@ if uploaded_file is not None:
             min_value, max_value, (min_value, max_value)
         )
 
-        if selected_dr_range == 'ODR':
-              hit_dr_session = 'ADR'
-        elif selected_dr_range == 'RDR':
-              hit_dr_session = 'ODR'
-        mid_hit_options = df[f'{hit_dr_session} Mid Broken '].dropna().unique().tolist()
-        selected_mid_hit = st.multiselect(f"{hit_dr_session} Mid Hit Time", ["All"] + mid_hit_options, default=["All"])
+        adr_mid_hit_options = df[f'ADR Mid Broken '].dropna().unique().tolist()
+        selected_adr_mid_hit = st.multiselect(f"ADR Mid Hit Time", ["All"] + adr_mid_hit_options, default=["All"])
+
+        odr_mid_hit_options = df[f'ODR Mid Broken '].dropna().unique().tolist()
+        selected_odr_mid_hit = st.multiselect(f"ODR Mid Hit Time", ["All"] + odr_mid_hit_options, default=["All"])
 
 
     ### **Apply Filters (Only if "All" is not selected)**
@@ -182,8 +181,12 @@ if uploaded_file is not None:
         df = df[df[f'{selected_dr_range} Model'].isin(selected_dr_models)]
 
     # Multi-Select Filtering for RDR Model
-    if "All" not in selected_mid_hit:
-        df = df[df[f'{hit_dr_session} Mid Broken '].isin(selected_mid_hit)]
+    if "All" not in selected_adr_mid_hit:
+        df = df[df[f'ADR Mid Broken '].isin(selected_adr_mid_hit)]
+
+    # Multi-Select Filtering for RDR Model
+    if "All" not in selected_odr_mid_hit:
+        df = df[df[f'ODR Mid Broken '].isin(selected_odr_mid_hit)]
 
     # Conf time and M7Box conf time filter
     df = df[df[f'{selected_dr_range} M7Box / IDR'].between(selected_range[0], selected_range[1], inclusive='left')]
