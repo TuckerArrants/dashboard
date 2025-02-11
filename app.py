@@ -34,6 +34,7 @@ def dynamic_binning(df, col_name, bin_width=0.25):
 USER_CREDENTIALS = {
     "amer": "NQ",
     "nick": "NQ",
+    "armando": "ES",
     "tucker": "gamma"
 }
 
